@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.basantpandey.find-my-mouse",
+  "name": "Find My Mouse",
+  "version": "0.1.0",
+  "author": "BasantPandey",
+  "description": "Press a hotkey to dim the screens and show a spotlight around the cursor.",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "FindMyMouse.qml" }
+}
