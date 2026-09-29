@@ -234,3 +234,27 @@ test("FindMyMouse.qml keeps the shell contract", function () {
   assert.equal(manifest.keepLoaded, true)
   assert.deepEqual(manifest.entryPoints, { overlay: "FindMyMouse.qml" })
 })
+
+test("README, LICENSE, and preview.png meet the marketplace limits", function () {
+  const readme = fs.readFileSync(path.join(pluginDir, "README.md"), "utf8")
+  assert.equal(readme.includes("\u2014"), false)
+  assert.ok(readme.includes("omarchy plugin add https://github.com/BasantPandey/omarchy-find-my-mouse.git --enable"))
+  assert.ok(readme.includes('o.bind("SUPER + CTRL + M", "Find my mouse", "omarchy-shell shell toggle io.github.basantpandey.find-my-mouse")'))
+  assert.ok(readme.includes("omarchy-shell shell toggle io.github.basantpandey.find-my-mouse '{}'"))
+  assert.ok(readme.includes("omarchy plugin remove io.github.basantpandey.find-my-mouse"))
+  assert.ok(readme.includes("Hyprland config reload"))
+  assert.ok(readme.includes("30 Hz"))
+
+  const license = fs.readFileSync(path.join(pluginDir, "LICENSE"), "utf8")
+  assert.ok(license.startsWith("MIT License"))
+  assert.ok(license.includes("Copyright (c) 2026 BasantPandey"))
+
+  const png = fs.readFileSync(path.join(pluginDir, "preview.png"))
+  assert.ok(png.length <= 50 * 1024 * 1024)
+  assert.equal(png.toString("ascii", 1, 4), "PNG")
+  assert.equal(png.toString("ascii", 12, 16), "IHDR")
+  const width = png.readUInt32BE(16)
+  const height = png.readUInt32BE(20)
+  assert.ok(width > 0 && height > 0)
+  assert.ok(width * height <= 40000000)
+})
