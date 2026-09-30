@@ -254,7 +254,8 @@ test("FindMyMouse.qml keeps the shell contract", function () {
     "pollIntervalMs",
     "HOLD_MS",
     "completeFade",
-    "isWindowVisible"
+    "isWindowVisible",
+    "Hyprland.refreshMonitors()"
   ]
   for (const token of required) {
     assert.ok(qml.includes(token), "missing QML contract string: " + token)

@@ -59,6 +59,8 @@ Item {
   function open(payloadJson) {
     // The shell passes a JSON payload. This overlay does not read it.
     void payloadJson
+    // Hyprland sends no event when a monitor scale or mode changes, so the layout can be stale.
+    Hyprland.refreshMonitors()
     root.applySession(FindMyMouseLogic.openSession(root.session, Date.now()))
     holdTimer.restart()
     root.requestPoll()
