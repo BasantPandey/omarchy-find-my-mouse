@@ -14,29 +14,46 @@ Item {
   property bool opened: false
   property var session: FindMyMouseLogic.createSession()
   property real ringDiameter: FindMyMouseLogic.SPOT_RADIUS * 2
-  readonly property color dimColor: Util.alpha(Color.background, 0.6)
+  // True when the desktop setting org.gnome.desktop.interface enable-animations is false.
+  property bool reduceMotion: false
+  readonly property color dimColor: Util.alpha(
+    FindMyMouseLogic.dimSource(Color.background, Color.foreground) === "foreground" ? Color.foreground : Color.background,
+    0.6
+  )
 
   // Call Style.duration when the shell provides it.
-  // Use the raw time when this shell has no Style.duration function.
+  // This shell has no Style.duration, so use the desktop reduce motion setting.
   function motionMs(ms) {
     try {
       if (typeof Style.duration === "function") return Style.duration(ms)
-    } catch (e) {
-      return ms
-    }
-    return ms
+    } catch (e) {}
+    return FindMyMouseLogic.motionDuration(ms, root.reduceMotion)
+  }
+
+  function applyEnableAnimations(text) {
+    var enabled = FindMyMouseLogic.parseEnableAnimations(text)
+    if (enabled !== null) root.reduceMotion = !enabled
   }
 
   function applySession(next) {
     if (!next || next === root.session) return
     var startRing = next.phase === "showing" && root.session.phase !== "showing"
-    // Start the ring large, then let the animation shrink it.
-    // Duration 0 keeps the final size, so reduce motion does not flash.
-    if (startRing && root.motionMs(FindMyMouseLogic.RING_MS) > 0)
-      root.ringDiameter = FindMyMouseLogic.SPOT_RADIUS * 8
     root.session = next
     root.opened = next.opened === true
-    if (startRing) ringAnim.restart()
+    if (startRing) root.startRing()
+  }
+
+  // Start the ring large, then let the animation shrink it.
+  // Reduce motion shows the final size at once and runs no animation.
+  function startRing() {
+    var ringMs = root.motionMs(FindMyMouseLogic.RING_MS)
+    ringAnim.stop()
+    if (ringMs > 0) {
+      ringAnim.duration = ringMs
+      ringAnim.restart()
+    } else {
+      root.ringDiameter = FindMyMouseLogic.SPOT_RADIUS * 2
+    }
   }
 
   function open(payloadJson) {
@@ -97,7 +114,6 @@ Item {
     property: "ringDiameter"
     from: FindMyMouseLogic.SPOT_RADIUS * 8
     to: FindMyMouseLogic.SPOT_RADIUS * 2
-    duration: root.motionMs(FindMyMouseLogic.RING_MS)
     easing.type: Easing.OutCubic
   }
 
@@ -122,7 +138,30 @@ Item {
     ]
   }
 
-  Component.onCompleted: layerRuleProc.running = true
+  Process {
+    id: animationsGetProc
+    command: ["gsettings", "get", "org.gnome.desktop.interface", "enable-animations"]
+    stdout: StdioCollector {
+      id: animationsOut
+      waitForEnd: true
+      onStreamFinished: root.applyEnableAnimations(animationsOut.text)
+    }
+  }
+
+  // Follow changes to the setting while the plugin stays loaded.
+  Process {
+    id: animationsWatchProc
+    command: ["gsettings", "monitor", "org.gnome.desktop.interface", "enable-animations"]
+    stdout: SplitParser {
+      onRead: function (line) { root.applyEnableAnimations(line) }
+    }
+  }
+
+  Component.onCompleted: {
+    layerRuleProc.running = true
+    animationsGetProc.running = true
+    animationsWatchProc.running = true
+  }
 
   Variants {
     model: Quickshell.screens
@@ -166,6 +205,7 @@ Item {
         opacity: root.session.phase === "showing" ? 1 : 0
 
         Behavior on opacity {
+          enabled: root.motionMs(FindMyMouseLogic.FADE_MS) > 0
           NumberAnimation {
             duration: root.motionMs(FindMyMouseLogic.FADE_MS)
             easing.type: Easing.OutCubic

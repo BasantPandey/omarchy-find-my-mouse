@@ -251,6 +251,41 @@ function spotlightRect(windowWidth, windowHeight, localX, localY, spotRadius) {
   }
 }
 
+// gsettings get prints "true" or "false".
+// gsettings monitor prints "enable-animations: false".
+// Return null when the text is not one of these.
+function parseEnableAnimations(raw) {
+  var text = String(raw || "").trim()
+  var colon = text.lastIndexOf(":")
+  if (colon >= 0) text = text.slice(colon + 1).trim()
+  if (text === "true") return true
+  if (text === "false") return false
+  return null
+}
+
+// Reduce motion makes each animation instant.
+function motionDuration(ms, reduceMotion) {
+  return reduceMotion === true ? 0 : ms
+}
+
+// Relative luminance of a color with r, g, b from 0 to 1.
+function luminance(c) {
+  if (!c) return 1
+  function channel(v) {
+    var n = Number(v)
+    if (!isFinite(n)) n = 1
+    return n <= 0.03928 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4)
+  }
+  return 0.2126 * channel(c.r) + 0.7152 * channel(c.g) + 0.0722 * channel(c.b)
+}
+
+// A white dim does not change a white screen.
+// Dim with the darker of the two palette colors.
+function dimSource(background, foreground) {
+  if (!background || !foreground) return "background"
+  return luminance(foreground) < luminance(background) ? "foreground" : "background"
+}
+
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     SPOT_RADIUS: SPOT_RADIUS,
@@ -277,6 +312,10 @@ if (typeof module !== "undefined" && module.exports) {
     monitorContains: monitorContains,
     localCursor: localCursor,
     locate: locate,
-    spotlightRect: spotlightRect
+    spotlightRect: spotlightRect,
+    parseEnableAnimations: parseEnableAnimations,
+    motionDuration: motionDuration,
+    luminance: luminance,
+    dimSource: dimSource
   }
 }

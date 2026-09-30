@@ -184,6 +184,40 @@ test("close and the 1.5 s timer leave the session closed, then a later open succ
   assert.equal(logic.isWindowVisible(reduced), false)
 })
 
+test("reduce motion from gsettings makes the ring and fade instant", function () {
+  assert.equal(logic.parseEnableAnimations("false\n"), false)
+  assert.equal(logic.parseEnableAnimations("true\n"), true)
+  assert.equal(logic.parseEnableAnimations("enable-animations: false\n"), false)
+  assert.equal(logic.parseEnableAnimations("enable-animations: true"), true)
+  assert.equal(logic.parseEnableAnimations(""), null)
+  assert.equal(logic.parseEnableAnimations("No such key"), null)
+
+  assert.equal(logic.motionDuration(logic.RING_MS, false), logic.RING_MS)
+  assert.equal(logic.motionDuration(logic.FADE_MS, false), logic.FADE_MS)
+  assert.equal(logic.motionDuration(logic.RING_MS, true), 0)
+  assert.equal(logic.motionDuration(logic.FADE_MS, true), 0)
+
+  const shown = logic.applyCursor(logic.openSession(logic.createSession(), 0), "{\"x\":1,\"y\":1}")
+  const closed = logic.closeSession(shown, 20, logic.motionDuration(logic.FADE_MS, true))
+  assert.equal(closed.phase, "closed")
+  assert.equal(logic.isWindowVisible(closed), false)
+})
+
+test("the dim uses the darker palette color, so it shows on a light theme", function () {
+  const white = { r: 1, g: 1, b: 1 }
+  const gray = { r: 110 / 255, g: 110 / 255, b: 110 / 255 }
+  const black = { r: 0, g: 0, b: 0 }
+  const kanagawaBg = { r: 0x1f / 255, g: 0x1f / 255, b: 0x28 / 255 }
+  const kanagawaFg = { r: 0xdc / 255, g: 0xd7 / 255, b: 0xba / 255 }
+
+  assert.equal(logic.dimSource(kanagawaBg, kanagawaFg), "background")
+  assert.equal(logic.dimSource(white, black), "foreground")
+  assert.equal(logic.dimSource(white, gray), "foreground")
+  assert.ok(logic.luminance(black) < logic.luminance(gray))
+  assert.ok(logic.luminance(gray) < logic.luminance(white))
+  assert.equal(logic.dimSource(null, black), "background")
+})
+
 test("FindMyMouse.qml keeps the shell contract", function () {
   const qml = fs.readFileSync(path.join(pluginDir, "FindMyMouse.qml"), "utf8")
   const required = [
@@ -202,6 +236,10 @@ test("FindMyMouse.qml keeps the shell contract", function () {
     "Style.duration",
     "Util.alpha",
     "Color.background",
+    "Color.foreground",
+    "dimSource",
+    "enable-animations",
+    "motionDuration",
     "Color.accent",
     "ponytail:",
     "import \"FindMyMouseLogic.js\"",

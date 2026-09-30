@@ -37,3 +37,5 @@ Then delete the hotkey line.
 
 - A Hyprland config reload can bring back the layer slide animation until the next shell restart.
 - The plugin reads the cursor with `hyprctl`, at 30 Hz, only while it shows.
+- Reduce motion: when `org.gnome.desktop.interface enable-animations` is `false`, the ring and the fade do not animate.
+- On a light theme, the dim uses the dark foreground color, so it shows on white.
