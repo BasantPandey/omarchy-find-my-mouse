@@ -10,7 +10,7 @@ The ring shrinks onto the cursor. The overlay closes after 1.5 seconds.
 - Omarchy Quattro (the Quickshell-based shell) on Hyprland.
 - `hyprctl`, which ships with Hyprland. The plugin uses it to read the cursor position and to add its layer rule.
 - `gsettings` is optional. If it is missing, the plugin ignores the reduce-motion setting.
-- No `sudo`, no network access, no extra packages, and no build step.
+- It needs no administrator rights, no network access, no extra packages, and no build step.
 
 ## Install
 
