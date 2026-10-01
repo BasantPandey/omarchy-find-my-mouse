@@ -3,7 +3,7 @@
 Press a hotkey. The screens go dim. A clear circle shows the cursor.
 The ring shrinks onto the cursor. The overlay closes after 1.5 seconds.
 
-[Watch a 3 second recording of the plugin running in Omarchy](https://github.com/BasantPandey/LearnAboutOmarchyResearch/blob/main/showcase/find-my-mouse/find-my-mouse-real.mp4).
+[Watch a 3 second recording of the plugin running in Omarchy](demo.mp4).
 
 ## Install
 
