@@ -266,7 +266,7 @@ test("FindMyMouse.qml keeps the shell contract", function () {
   assert.equal(manifest.schemaVersion, 1)
   assert.equal(manifest.id, "io.github.basantpandey.find-my-mouse")
   assert.equal(manifest.name, "Find My Mouse")
-  assert.equal(manifest.version, "0.1.0")
+  assert.equal(manifest.version, "0.1.1")
   assert.equal(manifest.author, "BasantPandey")
   assert.equal(manifest.description, "Press a hotkey to dim the screens and show a spotlight around the cursor.")
   assert.deepEqual(manifest.kinds, ["overlay"])
